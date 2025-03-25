@@ -47,7 +47,7 @@ void func3(int arg1);
 */
 void print_stack()
 {
-    if (SP == -1)
+    if (SP == -1)        
     {
         printf("Stack is empty.\n");
         return;
@@ -55,12 +55,12 @@ void print_stack()
 
     printf("====== Current Call Stack ======\n");
     
-    for (int i = SP; i >= 0; i--)
+    for (int i = SP; i >= 0; i--)  // 최상단에서 부터 내려감.
     {
-        if (call_stack[i] != -1)
+        if (call_stack[i] != -1)    //return address가 아닌 경우
             printf("%d : %s = %d", i ,stack_info[i], call_stack[i]);
         else
-            printf("%d : %s", i, stack_info[i]);
+            printf("%d : %s", i, stack_info[i]);   //return address인 경우
 
         if (i == SP)
             printf("    <=== [esp]\n");
@@ -111,8 +111,67 @@ void func3(int arg1)
 //main 함수에 관련된 stack frame은 구현하지 않아도 됩니다.
 int main()
 {
+
     func1(1, 2, 3);
     // func1의 스택 프레임 제거 (함수 에필로그 + pop)
     print_stack();
     return 0;
+}
+
+void push(int value, char value_name)
+{
+    if (SP < (STACK_SIZE));
+    {
+        SP++;
+        call_stack[SP] = value;
+        strcpy(stack_info[SP], value_name);
+    }
+    
+}
+void pop()
+{
+    call_stack[SP] = 0;
+    stack_info[SP] = 0;
+    SP--;
+
+}
+
+void Prologue(char* func_name, int count, ...);
+{
+    va_list args;
+    va_start(args, count);
+    for (int i = 0; i < count; i++) //함수 인자 stack에 push
+    {
+        int arg = va_arg(args, int);
+        char temp[50];
+        sprintf(temp, "arg%d", i + 1);
+        push(arg, temp);
+        
+
+
+    }
+    va_end(args);
+    push(-1, "return address");//return address push
+
+    char sfp_info[50];
+    sprintf(sfp_info, " %s SFP", func_name); //SFP push
+
+
+    push(FP, sfp_info);
+
+    
+    FP = SP;
+
+    
+
+}
+
+void Epilogue(char* func_name, int count, ...);
+{
+    while (1) :
+    {
+        pop();
+        if (SP == FP):
+
+    }
 }
