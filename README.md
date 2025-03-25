@@ -45,14 +45,18 @@ void func3(int arg1);
 
 void push(int value, char value_name[])
 {
-    if (SP < (STACK_SIZE)-1)
+    if ((SP < (STACK_SIZE)-1)&&(!(value==FP)))
     {
         ++SP;
         call_stack[SP] = value;
         strcpy(stack_info[SP], value_name);
     }
-    else {
-        printf("Stack Overflow! (%s = %d)\n", value_name, value);
+    else
+    {
+        ++FP;
+        ++SP;
+        call_stack[SP] = value;
+        strcpy(stack_info[SP], value_name);
     }
 
 }
