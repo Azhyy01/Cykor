@@ -21,6 +21,8 @@
     ========================================================================
 */
 #include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
 #define STACK_SIZE 50 // 최대 스택 크기
 
 int     call_stack[STACK_SIZE];         // Call Stack을 저장하는 배열
@@ -40,6 +42,69 @@ int FP = -1;
 void func1(int arg1, int arg2, int arg3);
 void func2(int arg1, int arg2);
 void func3(int arg1);
+
+void push(int value, char value_name[])
+{
+    if (SP < (STACK_SIZE)-1)
+    {
+        ++SP;
+        call_stack[SP] = value;
+        strcpy(stack_info[SP], value_name);
+    }
+    else {
+        printf("Stack Overflow! (%s = %d)\n", value_name, value);
+    }
+
+}
+void pop()
+{
+    call_stack[SP] = 0;
+    strcpy(stack_info[SP], "");
+    SP--;
+
+}
+
+void Prologue(char* func_name, int count, ...)
+{
+    va_list args;
+    va_start(args, count);
+    for (int i = 0; i < count; i++) //함수 인자 stack에 push
+    {
+        int arg = va_arg(args, int);
+        char temp[50];
+        sprintf(temp, "arg%d", i + 1);
+        push(arg, temp);
+
+
+
+    }
+    va_end(args);
+    
+    push(-1, "return address");//return address push
+    
+
+    char sfp_info[50];
+    sprintf(sfp_info, " %s SFP", func_name); //SFP push
+    FP = SP;
+    push(FP, sfp_info);
+
+}
+
+void Epilogue(int count_local, int count_arg, int* SFP)
+{
+    for (int i = 0; i < count_local; i++)//지역 변수 pop
+    {
+        pop();
+    }
+
+    FP = *SFP; //SFP 복원
+    pop();
+    pop();//return address 제거
+    for (int i = 0; i < count_arg; i++)
+    {
+        pop();
+    }
+}
 
 /*  
     현재 call_stack 전체를 출력합니다.
@@ -76,6 +141,7 @@ void print_stack()
 //func 내부는 자유롭게 추가해도 괜찮으나, 아래의 구조를 바꾸지는 마세요
 void func1(int arg1, int arg2, int arg3)
 {
+    // func1의 스택 프레임 형성 (함수 프롤로그 + push)
     Prologue("func1", 3,arg1, arg2, arg3);
 
  
@@ -84,14 +150,14 @@ void func1(int arg1, int arg2, int arg3)
     int var_1 = 100;
     push(var_1, "var_1");
 
-    // func1의 스택 프레임 형성 (함수 프롤로그 + push)
+    
     print_stack();
    
 
 
     func2(11, 13);
     // func2의 스택 프레임 제거 (함수 에필로그 + pop)
-
+    Epilogue(1, 2, func1_SFP);
 
     print_stack();
 }
@@ -99,6 +165,7 @@ void func1(int arg1, int arg2, int arg3)
 
 void func2(int arg1, int arg2)
 {
+    // func2의 스택 프레임 형성 (함수 프롤로그 + push)
     Prologue("func2", 2,arg1, arg2);
  
     int FP2 = FP; //복원할 func1의 SFP 저장
@@ -106,17 +173,18 @@ void func2(int arg1, int arg2)
     int var_2 = 200;
     push(var_2, "var_2");
     
-    // func2의 스택 프레임 형성 (함수 프롤로그 + push)
+    
     print_stack();
     func3(77);
     // func3의 스택 프레임 제거 (함수 에필로그 + pop)
-    Epilogue()
+    Epilogue(2, 1, func2_SFP);
     print_stack();
 }
 
 
 void func3(int arg1)
 {
+    // func3의 스택 프레임 형성 (함수 프롤로그 + push)
     Prologue("func3", 1, arg1);
   
     int var_3 = 300;
@@ -125,7 +193,7 @@ void func3(int arg1)
     push(var_4, "var_4");
 
 
-    // func3의 스택 프레임 형성 (함수 프롤로그 + push)
+    
     print_stack();
 }
 
@@ -133,76 +201,12 @@ void func3(int arg1)
 //main 함수에 관련된 stack frame은 구현하지 않아도 됩니다.
 int main()
 {
-
+    int* main_SFP = &FP;
     func1(1, 2, 3);
+    
     // func1의 스택 프레임 제거 (함수 에필로그 + pop)
+    Epilogue(1, 3, main_SFP);
     print_stack();
     return 0;
 }
 
-void push(int value, char value_name)
-{
-    if (SP < (STACK_SIZE));
-    {
-        SP++;
-        call_stack[SP] = value;
-        strcpy(stack_info[SP], value_name);
-    }
-    
-}
-void pop()
-{
-    call_stack[SP] = 0;
-    stack_info[SP] = 0;
-    SP--;
-
-}
-
-void Prologue(char* func_name, int count, ...);
-{
-    va_list args;
-    va_start(args, count);
-    for (int i = 0; i < count; i++) //함수 인자 stack에 push
-    {
-        int arg = va_arg(args, int);
-        char temp[50];
-        sprintf(temp, "arg%d", i + 1);
-        push(arg, temp);
-        
-
-
-    }
-    va_end(args);
-    push(-1, "return address");//return address push
-
-    char sfp_info[50];
-    sprintf(sfp_info, " %s SFP", func_name); //SFP push
-
-    FP = SP;
-    push(FP, sfp_info);
-
-    
-   
-
-
-
-
-    
-
-}
-
-void Epilogue(int count_local, int count_arg, int *SFP)
-{
-    for (int i = 0; i < count_local; i++)//지역 변수 pop
-    {
-        pop();
-    }
-    
-    FP = *SFP; //SFP 복원
-    pop();
-    pop();//return address 제거
-    for (int i = 0; i < count_arg; i++)
-    {
-        pop();
-    }
-}
