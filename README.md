@@ -78,7 +78,7 @@ void func1(int arg1, int arg2, int arg3)
 {
     Prologue("func1", 3,arg1, arg2, arg3);
 
-    FP = SP;//FP 갱신
+ 
     int FP1 = FP; //복원할 func1의 SFP 저장
     int* func1_SFP = &FP1;
     int var_1 = 100;
@@ -100,7 +100,7 @@ void func1(int arg1, int arg2, int arg3)
 void func2(int arg1, int arg2)
 {
     Prologue("func2", 2,arg1, arg2);
-    FP = SP;//FP 갱신
+ 
     int FP2 = FP; //복원할 func1의 SFP 저장
     int* func2_SFP = &FP2;
     int var_2 = 200;
@@ -118,7 +118,7 @@ void func2(int arg1, int arg2)
 void func3(int arg1)
 {
     Prologue("func3", 1, arg1);
-    FP = SP;//FP 갱신
+  
     int var_3 = 300;
     int var_4 = 400;
     push(var_3, "var_3");
@@ -178,7 +178,7 @@ void Prologue(char* func_name, int count, ...);
     char sfp_info[50];
     sprintf(sfp_info, " %s SFP", func_name); //SFP push
 
-
+    FP = SP;
     push(FP, sfp_info);
 
     
@@ -191,14 +191,15 @@ void Prologue(char* func_name, int count, ...);
 
 }
 
-void Epilogue(int count_local, int count_arg, int *SFP);
+void Epilogue(int count_local, int count_arg, int *SFP)
 {
     for (int i = 0; i < count_local; i++)//지역 변수 pop
     {
         pop();
     }
-    pop();
+    
     FP = *SFP; //SFP 복원
+    pop();
     pop();//return address 제거
     for (int i = 0; i < count_arg; i++)
     {
