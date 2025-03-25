@@ -76,32 +76,54 @@ void print_stack()
 //func 내부는 자유롭게 추가해도 괜찮으나, 아래의 구조를 바꾸지는 마세요
 void func1(int arg1, int arg2, int arg3)
 {
+    Prologue("func1", 3,arg1, arg2, arg3);
+
+    FP = SP;//FP 갱신
+    int FP1 = FP; //복원할 func1의 SFP 저장
+    int* func1_SFP = &FP1;
     int var_1 = 100;
+    push(var_1, "var_1");
 
     // func1의 스택 프레임 형성 (함수 프롤로그 + push)
     print_stack();
+   
+
+
     func2(11, 13);
     // func2의 스택 프레임 제거 (함수 에필로그 + pop)
+
+
     print_stack();
 }
 
 
 void func2(int arg1, int arg2)
 {
+    Prologue("func2", 2,arg1, arg2);
+    FP = SP;//FP 갱신
+    int FP2 = FP; //복원할 func1의 SFP 저장
+    int* func2_SFP = &FP2;
     int var_2 = 200;
-
+    push(var_2, "var_2");
+    
     // func2의 스택 프레임 형성 (함수 프롤로그 + push)
     print_stack();
     func3(77);
     // func3의 스택 프레임 제거 (함수 에필로그 + pop)
+    Epilogue()
     print_stack();
 }
 
 
 void func3(int arg1)
 {
+    Prologue("func3", 1, arg1);
+    FP = SP;//FP 갱신
     int var_3 = 300;
     int var_4 = 400;
+    push(var_3, "var_3");
+    push(var_4, "var_4");
+
 
     // func3의 스택 프레임 형성 (함수 프롤로그 + push)
     print_stack();
@@ -160,18 +182,26 @@ void Prologue(char* func_name, int count, ...);
     push(FP, sfp_info);
 
     
-    FP = SP;
+   
+
+
+
 
     
 
 }
 
-void Epilogue(char* func_name, int count, ...);
+void Epilogue(int count_local, int count_arg, int *SFP);
 {
-    while (1) :
+    for (int i = 0; i < count_local; i++)//지역 변수 pop
     {
         pop();
-        if (SP == FP):
-
+    }
+    pop();
+    FP = *SFP; //SFP 복원
+    pop();//return address 제거
+    for (int i = 0; i < count_arg; i++)
+    {
+        pop();
     }
 }
