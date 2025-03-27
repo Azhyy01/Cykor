@@ -45,18 +45,13 @@ void func3(int arg1);
 
 void push(int value, char value_name[])
 {
-    if ((SP < (STACK_SIZE)-1)&&(!(value==FP)))
+    if ((SP < (STACK_SIZE)-1))
     {
         ++SP;
         call_stack[SP] = value;
         strcpy(stack_info[SP], value_name);
-    }
-    else
-    {
-        ++FP;
-        ++SP;
-        call_stack[SP] = value;
-        strcpy(stack_info[SP], value_name);
+        
+
     }
 
 }
@@ -70,27 +65,31 @@ void pop()
 
 void Prologue(char* func_name, int count, ...)
 {
+    int bfFP = FP;
+
+    int* bf_FP = &bfFP;//이전 FP
     va_list args;
-    va_start(args, count);
-    for (int i = 0; i < count; i++) //함수 인자 stack에 push
+    va_start(args, count); 
+    for (int i = count-1; i >=0; i--) //함수 인자 stack에 push
     {
         int arg = va_arg(args, int);
         char temp[50];
-        sprintf(temp, "arg%d", i + 1);
+        sprintf(temp, "arg%d", i+1);
         push(arg, temp);
 
 
 
     }
     va_end(args);
-    
-    push(-1, "return address");//return address push
+   
+    push(-1, "return address",bf_FP);//return address push
     
 
     char sfp_info[50];
     sprintf(sfp_info, " %s SFP", func_name); //SFP push
     FP = SP;
-    push(FP, sfp_info);
+    ++FP;
+    push(*bf_FP, sfp_info);
 
 }
 
@@ -146,7 +145,7 @@ void print_stack()
 void func1(int arg1, int arg2, int arg3)
 {
     // func1의 스택 프레임 형성 (함수 프롤로그 + push)
-    Prologue("func1", 3,arg1, arg2, arg3);
+    Prologue("func1", 3,arg3, arg2, arg1);
 
  
     int FP1 = FP; //복원할 func1의 SFP 저장
@@ -170,7 +169,7 @@ void func1(int arg1, int arg2, int arg3)
 void func2(int arg1, int arg2)
 {
     // func2의 스택 프레임 형성 (함수 프롤로그 + push)
-    Prologue("func2", 2,arg1, arg2);
+    Prologue("func2", 2,arg2, arg1);
  
     int FP2 = FP; //복원할 func1의 SFP 저장
     int* func2_SFP = &FP2;
@@ -190,7 +189,7 @@ void func3(int arg1)
 {
     // func3의 스택 프레임 형성 (함수 프롤로그 + push)
     Prologue("func3", 1, arg1);
-  
+    
     int var_3 = 300;
     int var_4 = 400;
     push(var_3, "var_3");
