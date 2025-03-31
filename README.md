@@ -82,7 +82,7 @@ void Prologue(char* func_name, int count, ...)
     }
     va_end(args);
    
-    push(-1, "return address",bf_FP);//return address push
+    push(-1, "return address");//return address push
     
 
     char sfp_info[50];
